@@ -44,7 +44,13 @@ chmod +x scripts/*.sh
 
 ## 文書の一括変換
 
-検証対象を `documents/` に配置して実行します。
+登録済みのOCR評価用入力を展開します。
+
+```bash
+tar -xf evaluation/ocr_inputs.tar
+```
+
+独自の検証対象を使う場合は、ファイルを `documents/` に配置します。
 
 ```bash
 ./scripts/convert.sh standard
