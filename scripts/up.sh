@@ -20,11 +20,18 @@ if [[ "${mode}" != "docling" && "${mode}" != "vllm" ]]; then
   exit 1
 fi
 
+: "${DOCLING_DO_PICTURE_DESCRIPTION:=false}"
+if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" != "true" && "${DOCLING_DO_PICTURE_DESCRIPTION}" != "false" ]]; then
+  echo "DOCLING_DO_PICTURE_DESCRIPTION は true または false を指定してください。" >&2
+  exit 1
+fi
+
 nvidia-smi
-if [[ "${mode}" == "vllm" ]]; then
+if [[ "${mode}" == "vllm" || "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
   : "${VLLM_URL:?VLLM_URL を .env に設定してください。}"
-  : "${DOCLING_VLM_CUSTOM_CONFIG:?DOCLING_VLM_CUSTOM_CONFIG を .env に設定してください。}"
-  : "${DOCLING_DO_PICTURE_DESCRIPTION:?DOCLING_DO_PICTURE_DESCRIPTION を .env に設定してください。}"
+  if [[ "${mode}" == "vllm" ]]; then
+    : "${DOCLING_VLM_CUSTOM_CONFIG:?DOCLING_VLM_CUSTOM_CONFIG を .env に設定してください。}"
+  fi
   if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
     : "${DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG:?DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG を .env に設定してください。}"
   fi
