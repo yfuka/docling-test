@@ -15,9 +15,6 @@ set +a
 : "${DOCLING_URL:?DOCLING_URL を .env に設定してください。}"
 : "${DOCLING_INPUT_DIR:?DOCLING_INPUT_DIR を .env に設定してください。}"
 : "${DOCLING_OUTPUT_DIR:?DOCLING_OUTPUT_DIR を .env に設定してください。}"
-: "${DOCLING_OCR_LANG:?DOCLING_OCR_LANG を .env に設定してください。}"
-: "${DOCLING_DO_PICTURE_DESCRIPTION:?DOCLING_DO_PICTURE_DESCRIPTION を .env に設定してください。}"
-: "${DOCLING_VLM_MODE:?DOCLING_VLM_MODE を .env に設定してください。}"
 
 pipeline="${1:-standard}"
 if [[ "${pipeline}" != "standard" && "${pipeline}" != "vlm" ]]; then
@@ -25,43 +22,18 @@ if [[ "${pipeline}" != "standard" && "${pipeline}" != "vlm" ]]; then
   exit 1
 fi
 
-if [[ "${pipeline}" == "vlm" ]]; then
-  if [[ "${DOCLING_VLM_MODE}" != "preset" && "${DOCLING_VLM_MODE}" != "api" ]]; then
-    echo "DOCLING_VLM_MODE は preset または api を指定してください。" >&2
+if [[ "${pipeline}" == "standard" ]]; then
+  : "${DOCLING_OCR_LANG:?DOCLING_OCR_LANG を .env に設定してください。}"
+  : "${DOCLING_DO_PICTURE_DESCRIPTION:?DOCLING_DO_PICTURE_DESCRIPTION を .env に設定してください。}"
+  if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" != "true" && "${DOCLING_DO_PICTURE_DESCRIPTION}" != "false" ]]; then
+    echo "DOCLING_DO_PICTURE_DESCRIPTION は true または false を指定してください。" >&2
     exit 1
   fi
-
-  if [[ "${DOCLING_VLM_MODE}" == "preset" ]]; then
-    : "${DOCLING_VLM_PRESET:?DOCLING_VLM_PRESET を .env に設定してください。}"
-  else
-    if [[ "${DOCLING_ENABLE_REMOTE_SERVICES}" != "true" || "${DOCLING_ALLOW_CUSTOM_VLM_CONFIG}" != "true" ]]; then
-      echo "api モードではリモートサービスとカスタム VLM 設定を有効にしてください。" >&2
-      exit 1
-    fi
-    : "${DOCLING_VLM_CUSTOM_CONFIG:?DOCLING_VLM_CUSTOM_CONFIG を .env に設定してください。}"
-  fi
-fi
-
-if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" != "true" && "${DOCLING_DO_PICTURE_DESCRIPTION}" != "false" ]]; then
-  echo "DOCLING_DO_PICTURE_DESCRIPTION は true または false を指定してください。" >&2
-  exit 1
-fi
-
-if [[ "${pipeline}" == "standard" && "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
-  : "${DOCLING_PICTURE_DESCRIPTION_MODE:?DOCLING_PICTURE_DESCRIPTION_MODE を .env に設定してください。}"
-  if [[ "${DOCLING_PICTURE_DESCRIPTION_MODE}" == "preset" ]]; then
-    : "${DOCLING_PICTURE_DESCRIPTION_PRESET:?DOCLING_PICTURE_DESCRIPTION_PRESET を .env に設定してください。}"
-    : "${DOCLING_PICTURE_DESCRIPTION_AREA_THRESHOLD:?DOCLING_PICTURE_DESCRIPTION_AREA_THRESHOLD を .env に設定してください。}"
-  elif [[ "${DOCLING_PICTURE_DESCRIPTION_MODE}" == "custom" ]]; then
-    if [[ "${DOCLING_ALLOW_CUSTOM_PICTURE_DESCRIPTION_CONFIG}" != "true" ]]; then
-      echo "custom モードではカスタム画像説明設定を有効にしてください。" >&2
-      exit 1
-    fi
+  if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
     : "${DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG:?DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG を .env に設定してください。}"
-  else
-    echo "DOCLING_PICTURE_DESCRIPTION_MODE は preset または custom を指定してください。" >&2
-    exit 1
   fi
+else
+  : "${DOCLING_VLM_CUSTOM_CONFIG:?DOCLING_VLM_CUSTOM_CONFIG を .env に設定してください。}"
 fi
 
 output_dir="${DOCLING_OUTPUT_DIR}/${pipeline}"
@@ -122,15 +94,10 @@ for file in "${files[@]}"; do
       --form "table_mode=accurate"
     )
     if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
-      form_options+=(--form "do_picture_description=true")
-      if [[ "${DOCLING_PICTURE_DESCRIPTION_MODE}" == "preset" ]]; then
-        form_options+=(
-          --form "picture_description_preset=${DOCLING_PICTURE_DESCRIPTION_PRESET}"
-          --form "picture_description_area_threshold=${DOCLING_PICTURE_DESCRIPTION_AREA_THRESHOLD}"
-        )
-      else
-        form_options+=(--form "picture_description_custom_config=${DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG}")
-      fi
+      form_options+=(
+        --form "do_picture_description=true"
+        --form "picture_description_custom_config=${DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG}"
+      )
     fi
   else
     from_format=image
@@ -141,11 +108,7 @@ for file in "${files[@]}"; do
       --form "pipeline=vlm"
       --form "from_formats=${from_format}"
     )
-    if [[ "${DOCLING_VLM_MODE}" == "preset" ]]; then
-      form_options+=(--form "vlm_pipeline_preset=${DOCLING_VLM_PRESET}")
-    else
-      form_options+=(--form "vlm_pipeline_custom_config=${DOCLING_VLM_CUSTOM_CONFIG}")
-    fi
+    form_options+=(--form "vlm_pipeline_custom_config=${DOCLING_VLM_CUSTOM_CONFIG}")
   fi
 
   http_code="$(
