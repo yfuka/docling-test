@@ -156,7 +156,9 @@ for file in "${files[@]}"; do
       "${form_options[@]}"
   )"
 
-  if [[ "${http_code}" != "200" ]] || ! grep -Eq '"status"[[:space:]]*:[[:space:]]*"(success|partial_success)"' "${output}"; then
+  if [[ "${http_code}" != "200" ]] \
+    || ! grep -Eq '"status"[[:space:]]*:[[:space:]]*"(success|partial_success)"' "${output}" \
+    || grep -Eq '"md_content"[[:space:]]*:[[:space:]]*(null|"")' "${output}"; then
     echo "失敗: ${name} (HTTP ${http_code})。応答: ${output}" >&2
     failed=1
   else

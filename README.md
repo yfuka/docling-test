@@ -123,8 +123,8 @@ Compose の `vllm` profile で、OpenAI 互換 API を提供する `vllm-openai`
 VLLM_IMAGE=vllm/vllm-openai:latest
 VLLM_PORT=8000
 VLLM_URL=http://localhost:8000
-VLLM_MODEL=Qwen/Qwen2.5-VL-3B-Instruct
-VLLM_SERVED_MODEL_NAME=qwen2.5-vl-3b
+VLLM_MODEL=Qwen/Qwen3.5-2B
+VLLM_SERVED_MODEL_NAME=qwen3.5-2b
 VLLM_GPU_MEMORY_UTILIZATION=0.7
 VLLM_MAX_MODEL_LEN=8192
 HF_TOKEN=
@@ -138,10 +138,11 @@ DOCLING_VLM_MODE=api
 DOCLING_LOAD_MODELS_AT_BOOT=false
 DOCLING_ENABLE_REMOTE_SERVICES=true
 DOCLING_ALLOW_CUSTOM_VLM_CONFIG=true
-DOCLING_VLM_CUSTOM_CONFIG='{"model_spec":{"name":"Self-hosted VLM","default_repo_id":"qwen2.5-vl-3b","prompt":"Convert this page to markdown. Do not miss any text and only output the bare markdown!","response_format":"markdown","supported_engines":["api"],"api_overrides":{"api":{"params":{"model":"qwen2.5-vl-3b","max_tokens":8192}}}},"engine_options":{"engine_type":"api","url":"http://vllm-openai:8000/v1/chat/completions","headers":{},"params":{"model":"qwen2.5-vl-3b","max_tokens":8192},"timeout":120,"concurrency":1},"scale":2.0,"batch_size":1}'
+DOCLING_VLM_CUSTOM_CONFIG='{"model_spec":{"name":"Self-hosted VLM","default_repo_id":"qwen3.5-2b","prompt":"Convert this page to markdown. Do not miss any text and only output the bare markdown!","response_format":"markdown","supported_engines":["api"],"api_overrides":{"api":{"params":{"model":"qwen3.5-2b","max_tokens":4096}}}},"engine_options":{"engine_type":"api","url":"http://vllm-openai:8000/v1/chat/completions","headers":{},"params":{"model":"qwen3.5-2b","max_tokens":4096},"timeout":120,"concurrency":1},"scale":2.0,"batch_size":1}'
 ```
 
 `VLLM_SERVED_MODEL_NAME` と JSON 内の `model` は同じ値にします。
+`max_tokens` は `VLLM_MAX_MODEL_LEN` より小さくし、画像とプロンプト用の入力トークンを残します。
 起動と確認は `vllm` を指定して実行します。
 
 ```bash
@@ -164,7 +165,7 @@ DOCLING_VLM_MODE=api
 DOCLING_LOAD_MODELS_AT_BOOT=false
 DOCLING_ENABLE_REMOTE_SERVICES=true
 DOCLING_ALLOW_CUSTOM_VLM_CONFIG=true
-DOCLING_VLM_CUSTOM_CONFIG='{"model_spec":{"name":"External VLM","default_repo_id":"qwen2.5vl:7b","prompt":"Convert this page to markdown. Do not miss any text and only output the bare markdown!","response_format":"markdown","supported_engines":["api"],"api_overrides":{"api":{"params":{"model":"qwen2.5vl:7b","max_tokens":8192}}}},"engine_options":{"engine_type":"api","url":"http://host.docker.internal:11434/v1/chat/completions","headers":{},"params":{"model":"qwen2.5vl:7b","max_tokens":8192},"timeout":120,"concurrency":1},"scale":2.0,"batch_size":1}'
+DOCLING_VLM_CUSTOM_CONFIG='{"model_spec":{"name":"External VLM","default_repo_id":"qwen2.5vl:7b","prompt":"Convert this page to markdown. Do not miss any text and only output the bare markdown!","response_format":"markdown","supported_engines":["api"],"api_overrides":{"api":{"params":{"model":"qwen2.5vl:7b","max_tokens":4096}}}},"engine_options":{"engine_type":"api","url":"http://host.docker.internal:11434/v1/chat/completions","headers":{},"params":{"model":"qwen2.5vl:7b","max_tokens":4096},"timeout":120,"concurrency":1},"scale":2.0,"batch_size":1}'
 ```
 
 `url`、`model`、`headers` を接続先に合わせて変更します。Bearer 認証を使う場合の
