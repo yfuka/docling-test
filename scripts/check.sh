@@ -20,7 +20,13 @@ if [[ "${mode}" != "docling" && "${mode}" != "vllm" ]]; then
   exit 1
 fi
 
-if [[ "${mode}" == "vllm" ]]; then
+: "${DOCLING_DO_PICTURE_DESCRIPTION:=false}"
+if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" != "true" && "${DOCLING_DO_PICTURE_DESCRIPTION}" != "false" ]]; then
+  echo "DOCLING_DO_PICTURE_DESCRIPTION は true または false を指定してください。" >&2
+  exit 1
+fi
+
+if [[ "${mode}" == "vllm" || "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
   : "${VLLM_URL:?VLLM_URL を .env に設定してください。}"
   docker compose --profile vllm ps
 else
@@ -33,7 +39,7 @@ docker compose exec -T docling-serve python -c \
 curl --silent --fail "${DOCLING_URL}/version"
 echo
 
-if [[ "${mode}" == "vllm" ]]; then
+if [[ "${mode}" == "vllm" || "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
   docker compose --profile vllm exec -T vllm-openai nvidia-smi
   curl --silent --fail "${VLLM_URL}/v1/models"
   echo

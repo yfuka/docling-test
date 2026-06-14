@@ -63,7 +63,8 @@ OCR、表構造認識、正確な表モードを有効にし、Markdown と Docl
 ### PDF 内の図版へのキャプション生成
 
 `standard` pipeline では、本文や表の変換を維持したまま、PDF 内で図版として
-検出された画像だけを VLM で説明できます。`.env` を次のように設定します。
+検出された画像だけを VLM で説明できます。デフォルトでは無効です。
+有効にする場合は `.env` を次のように設定します。
 
 ```dotenv
 DOCLING_DO_PICTURE_DESCRIPTION=true
@@ -86,7 +87,7 @@ DOCLING_DO_PICTURE_DESCRIPTION=true
 実際にキャプション生成へ渡される指示は、カスタム設定直下の `prompt` です。
 `generation_config.max_new_tokens` で説明の最大長も調整できます。設定変更後は
 Docling Serve を再起動してください。この設定は Compose 内の `vllm-openai` を使うため、
-`./scripts/up.sh vllm` で起動します。
+`./scripts/up.sh` で Docling Serve と vLLM の両方を起動します。
 
 VLM pipeline は PDF と画像を対象に実行します。DOCX、PPTX、XLSX は VLM
 pipeline の対応外であるため、standard pipeline で検証してください。
@@ -130,7 +131,9 @@ DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG='{"model_spec":{"name":"Self-hosted pi
 
 `VLLM_SERVED_MODEL_NAME` と JSON 内の `model` は同じ値にします。
 `max_tokens` は `VLLM_MAX_MODEL_LEN` より小さくし、画像とプロンプト用の入力トークンを残します。
-起動と確認は `vllm` を指定して実行します。
+VLM pipeline を使う場合は `vllm` を指定して起動と確認を実行します。
+画像説明だけを有効にした場合は、通常の `./scripts/up.sh` と `./scripts/check.sh` でも
+vLLM が自動的に対象になります。
 
 ```bash
 ./scripts/up.sh vllm
@@ -139,10 +142,10 @@ DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG='{"model_spec":{"name":"Self-hosted pi
 ./scripts/convert.sh vlm
 ```
 
-モデルは `vllm-cache` Docker volume に保存されます。通常の
-`./scripts/up.sh` では `vllm-openai` は起動しません。Docling と vLLM が同じ
-GPU を使うため、メモリ不足になる場合は `VLLM_GPU_MEMORY_UTILIZATION` を下げて
-ください。
+モデルは `vllm-cache` Docker volume に保存されます。
+`DOCLING_DO_PICTURE_DESCRIPTION=false` の通常起動では `vllm-openai` は起動しません。
+Docling と vLLM が同じ GPU を使うため、メモリ不足になる場合は
+`VLLM_GPU_MEMORY_UTILIZATION` を下げてください。
 
 #### 別の OpenAI 互換 API を使う
 
