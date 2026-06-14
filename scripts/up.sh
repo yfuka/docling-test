@@ -23,11 +23,11 @@ fi
 nvidia-smi
 if [[ "${mode}" == "vllm" ]]; then
   : "${VLLM_URL:?VLLM_URL を .env に設定してください。}"
-  if [[ "${DOCLING_VLM_MODE}" != "api" || "${DOCLING_ENABLE_REMOTE_SERVICES}" != "true" || "${DOCLING_ALLOW_CUSTOM_VLM_CONFIG}" != "true" ]]; then
-    echo "vllm モードでは Docling の API VLM 設定を有効にしてください。" >&2
-    exit 1
-  fi
   : "${DOCLING_VLM_CUSTOM_CONFIG:?DOCLING_VLM_CUSTOM_CONFIG を .env に設定してください。}"
+  : "${DOCLING_DO_PICTURE_DESCRIPTION:?DOCLING_DO_PICTURE_DESCRIPTION を .env に設定してください。}"
+  if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" == "true" ]]; then
+    : "${DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG:?DOCLING_PICTURE_DESCRIPTION_CUSTOM_CONFIG を .env に設定してください。}"
+  fi
   docker compose --profile vllm config --quiet
   docker compose --profile vllm up -d
 
