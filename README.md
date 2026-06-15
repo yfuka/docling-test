@@ -26,31 +26,11 @@ cp .env.example .env
 chmod +x scripts/*.sh
 ```
 
-必要に応じて `.env` を編集します。OCR は RapidOCR と TesserOCR を切り替えられます。
-既定は、日本語を含む多言語認識で精度を優先した RapidOCR の
-`PP-OCRv5 server` モデルです。
+OCR は RapidOCR の `PP-OCRv5 server` モデルを PyTorch CUDA バックエンドで使用します。
+このモデルは日本語、中国語、英語を含む文字認識に対応しています。
 
-```dotenv
-DOCLING_OCR_ENGINE=rapidocr
-DOCLING_RAPIDOCR_MODEL=ppocrv5-server
-```
-
-RapidOCR では次のモデルを選択できます。
-
-- `ppocrv5-server`: 日本語、中国語、英語の認識精度を優先する既定値
-- `ppocrv5-mobile`: PP-OCRv5 の軽量モデル
-- `ppocrv4-japan`: 日本語専用の PP-OCRv4 軽量モデル
-
-RapidOCR の各モデルは派生イメージのビルド時に取得されます。実行時にモデルを
-ダウンロードしないため、起動後のモデル選択はネットワーク接続に依存しません。
-
-TesserOCR を使う場合は次のように設定します。派生イメージには日本語学習データを
-追加してあります。
-
-```dotenv
-DOCLING_OCR_ENGINE=tesserocr
-DOCLING_OCR_LANG=jpn,eng
-```
+RapidOCR のモデルは派生イメージのビルド時に取得されます。実行時にモデルを
+ダウンロードしないため、起動後のOCRはネットワーク接続に依存しません。
 
 ## デプロイと確認
 
