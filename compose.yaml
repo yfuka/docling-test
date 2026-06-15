@@ -1,5 +1,10 @@
 services:
   docling-serve:
+    build:
+      context: .
+      dockerfile: Containerfile
+      args:
+        DOCLING_BASE_IMAGE: ${DOCLING_BASE_IMAGE}
     image: ${DOCLING_IMAGE}
     container_name: docling-serve
     ports:
@@ -14,6 +19,7 @@ services:
       DOCLING_SERVE_ENABLE_REMOTE_SERVICES: "true"
       DOCLING_SERVE_ALLOW_CUSTOM_VLM_CONFIG: "true"
       DOCLING_SERVE_ALLOW_CUSTOM_PICTURE_DESCRIPTION_CONFIG: "true"
+      DOCLING_SERVE_ALLOW_CUSTOM_OCR_CONFIG: "true"
       DOCLING_DEVICE: cuda
       NVIDIA_VISIBLE_DEVICES: all
     runtime: nvidia
