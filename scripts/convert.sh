@@ -23,7 +23,15 @@ if [[ "${pipeline}" != "standard" && "${pipeline}" != "vlm" ]]; then
 fi
 
 if [[ "${pipeline}" == "standard" ]]; then
+  : "${DOCLING_OCR_ENGINE:?DOCLING_OCR_ENGINE を .env に設定してください。}"
   : "${DOCLING_OCR_LANG:?DOCLING_OCR_LANG を .env に設定してください。}"
+  if [[ "${DOCLING_OCR_ENGINE}" != "tesserocr" && "${DOCLING_OCR_ENGINE}" != "rapidocr" ]]; then
+    echo "DOCLING_OCR_ENGINE は tesserocr または rapidocr を指定してください。" >&2
+    exit 1
+  fi
+  if [[ "${DOCLING_OCR_ENGINE}" == "rapidocr" ]]; then
+    : "${DOCLING_RAPIDOCR_MODEL:?DOCLING_RAPIDOCR_MODEL を .env に設定してください。}"
+  fi
   : "${DOCLING_DO_PICTURE_DESCRIPTION:?DOCLING_DO_PICTURE_DESCRIPTION を .env に設定してください。}"
   if [[ "${DOCLING_DO_PICTURE_DESCRIPTION}" != "true" && "${DOCLING_DO_PICTURE_DESCRIPTION}" != "false" ]]; then
     echo "DOCLING_DO_PICTURE_DESCRIPTION は true または false を指定してください。" >&2
@@ -86,10 +94,38 @@ for file in "${files[@]}"; do
   )
 
   if [[ "${pipeline}" == "standard" ]]; then
+    if [[ "${DOCLING_OCR_ENGINE}" == "tesserocr" ]]; then
+      ocr_lang_json=
+      IFS=',' read -ra ocr_langs <<< "${DOCLING_OCR_LANG}"
+      for lang in "${ocr_langs[@]}"; do
+        lang="${lang//[[:space:]]/}"
+        [[ -n "${lang}" ]] || continue
+        [[ -z "${ocr_lang_json}" ]] || ocr_lang_json+=","
+        ocr_lang_json+="\"${lang}\""
+      done
+      ocr_custom_config="{\"kind\":\"tesserocr\",\"lang\":[${ocr_lang_json}]}"
+    else
+      case "${DOCLING_RAPIDOCR_MODEL}" in
+        ppocrv5-server)
+          ocr_custom_config='{"kind":"rapidocr","lang":["chinese"],"backend":"onnxruntime","det_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/det.onnx","cls_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/cls.onnx","rec_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/rec.onnx","rec_keys_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/keys.txt"}'
+          ;;
+        ppocrv5-mobile)
+          ocr_custom_config='{"kind":"rapidocr","lang":["chinese"],"backend":"onnxruntime","det_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-mobile/det.onnx","cls_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-mobile/cls.onnx","rec_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-mobile/rec.onnx","rec_keys_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-mobile/keys.txt"}'
+          ;;
+        ppocrv4-japan)
+          ocr_custom_config='{"kind":"rapidocr","lang":["japanese"],"backend":"onnxruntime","rec_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv4-japan/rec.onnx","rec_keys_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv4-japan/keys.txt"}'
+          ;;
+        *)
+          echo "DOCLING_RAPIDOCR_MODEL は ppocrv5-server、ppocrv5-mobile、ppocrv4-japan のいずれかを指定してください。" >&2
+          exit 1
+          ;;
+      esac
+    fi
+
     form_options+=(
       --form "pipeline=standard"
       --form "do_ocr=true"
-      --form "ocr_lang=${DOCLING_OCR_LANG}"
+      --form "ocr_custom_config=${ocr_custom_config}"
       --form "do_table_structure=true"
       --form "table_mode=accurate"
     )
