@@ -88,7 +88,7 @@ for file in "${files[@]}"; do
     form_options+=(
       --form "pipeline=standard"
       --form "do_ocr=true"
-      --form 'ocr_custom_config={"kind":"rapidocr","lang":["chinese"],"backend":"torch","det_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/det.pth","cls_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/cls.pth","rec_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/rec.pth","rec_keys_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/keys.txt"}'
+      --form 'ocr_custom_config={"kind":"rapidocr","lang":["chinese"],"backend":"torch","det_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/ch_PP-OCRv5_det_server.pth","cls_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/ch_ptocr_mobile_v2.0_cls_mobile.pth","rec_model_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/ch_PP-OCRv5_rec_server.pth","rec_keys_path":"/opt/app-root/src/.cache/docling/models/RapidOcr/custom/ppocrv5-server/keys.txt"}'
       --form "do_table_structure=true"
       --form "table_mode=accurate"
     )
